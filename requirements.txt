@@ -1,2 +1,2 @@
-pytelegrambotapi
+aiogram==2.25.1
 flask
