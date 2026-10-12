@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=config.BOT_TOKEN)
 dp = Dispatcher(bot)
 
-# Render-এর স্লিপ প্রবলেম সমাধানের জন্য ফ্লাস্ক সার্ভার
+# Render ২৪/৭ সচল রাখার ফ্লাস্ক সার্ভার
 app = Flask(__name__)
 
 @app.route('/')
@@ -50,20 +50,19 @@ async def start_handler(message: types.Message):
 
     await send_main_menu(message)
 
-# মেইন মেনু মেসেজ
+# মেইন মেনু মেসেজ (মিনি অ্যাপ বাটনসহ)
 async def send_main_menu(message: types.Message):
-    keyboard = InlineKeyboardMarkup(row_width=2)
+    keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        InlineKeyboardButton("🚀 Open Mini App", web_app=WebAppInfo(url=config.WEB_APP_URL)),
-        InlineKeyboardButton("📢 Join Channel", url=f"https://t.me/{config.CHANNEL_USERNAME.replace('@', '')}")
+        InlineKeyboardButton("🚀 Open RKR Mini App", web_app=WebAppInfo(url=config.WEB_APP_URL)),
+        InlineKeyboardButton("📢 Join Official Channel", url=f"https://t.me/{config.CHANNEL_USERNAME.replace('@', '')}")
     )
     
     welcome_text = (
         f"🎉 **Welcome to RKR Airdrop Center!**\n\n"
-        f"💰 **Current Rate:** 1 $RKR ≈ ${config.RKR_RATE_USD} USD\n"
-        f"👥 **Referral Reward:** Get {config.REFERRAL_RKR_REWARD} $RKR + {config.REFERRAL_SPIN_REWARD} Spins per invite!\n"
-        f"📈 **Lifetime Commission:** Get 0.5% lifetime earnings from invited friends.\n\n"
-        f"Play games, complete tasks & build your crypto balance now! 👇"
+        f"💰 **Rate:** 1 $RKR ≈ ${config.RKR_RATE_USD} USD\n"
+        f"👥 **Referral Reward:** Get {config.REFERRAL_RKR_REWARD} $RKR + {config.REFERRAL_SPIN_REWARD} Spins!\n\n"
+        f"নিচের **Open RKR Mini App** বাটনে ক্লিক করে কাজ শুরু করুন 👇"
     )
     await message.answer(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
 
