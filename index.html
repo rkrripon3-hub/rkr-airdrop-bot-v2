@@ -3,367 +3,446 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RKR Coin Airdrop Center</title>
-    <!-- Phaser 3 Game Engine & Telegram WebApp SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <title>RKR Airdrop Center</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            background-color: #0d1117;
+            user-select: none;
+        }
+        body {
+            background: #020617;
             color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
         }
-        #game-container {
+        .app-card {
             width: 100%;
-            max-width: 450px;
+            max-width: 420px;
             height: 100vh;
-            background: linear-gradient(135deg, #1e1b4b, #0f172a);
+            background: radial-gradient(circle at top, #1e1b4b 0%, #020617 80%);
+            display: flex;
+            flex-direction: column;
             position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            overflow: hidden;
         }
-        /* টপ হেডার বার */
-        .top-bar {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(30, 41, 59, 0.85);
-            padding: 8px 12px;
-            border-radius: 12px;
-            backdrop-filter: blur(5px);
-            z-index: 100;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .user-info {
+
+        /* Top Header */
+        .header {
+            padding: 12px 16px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
-        .user-avatar {
-            width: 35px;
-            height: 35px;
+        .logo-box {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            color: #fff;
+            border: 2px solid #38bdf8;
+            box-shadow: 0 0 10px rgba(56,189,248,0.5);
+        }
+        .header-title h2 {
+            font-size: 16px;
+            color: #38bdf8;
+            text-shadow: 0 0 8px rgba(56,189,248,0.6);
+        }
+        .header-title p {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        /* Balance Grid */
+        .balance-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 0 16px 10px;
+        }
+        .stat-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #0284c7;
+            border-radius: 14px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: inset 0 0 10px rgba(2,132,199,0.2);
+        }
+        .stat-icon {
+            width: 36px;
+            height: 36px;
             background: #f59e0b;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 18px;
+            box-shadow: 0 0 8px #f59e0b;
         }
-        .balances {
-            display: flex;
-            gap: 15px;
+        .stat-icon.rkr {
+            background: #0284c7;
+            box-shadow: 0 0 8px #0284c7;
         }
-        .coin-box {
-            text-align: right;
-        }
-        .coin-box span {
+        .stat-info span {
             font-size: 11px;
             color: #94a3b8;
             display: block;
         }
-        .coin-box strong {
-            font-size: 14px;
-            color: #38bdf8;
+        .stat-info strong {
+            font-size: 15px;
+            color: #fff;
+        }
+        .stat-info small {
+            font-size: 10px;
+            color: #10b981;
+            display: block;
         }
 
-        /* বটম ন্যাভিগেশন বার */
+        /* Main Screen Container */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 16px 80px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Spin Wheel Section */
+        .wheel-wrap {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            margin: 15px auto;
+        }
+        .pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 22px solid #f59e0b;
+            z-index: 10;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid #38bdf8;
+            box-shadow: 0 0 20px rgba(56,189,248,0.4);
+            background: conic-gradient(
+                #0284c7 0deg 60deg,
+                #0f172a 60deg 120deg,
+                #0284c7 120deg 180deg,
+                #0f172a 180deg 240deg,
+                #0284c7 240deg 300deg,
+                #0f172a 300deg 360deg
+            );
+            transition: transform 3s cubic-bezier(0.15, 0.99, 0.33, 1);
+            position: relative;
+        }
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: #0284c7;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        /* Progress Bar */
+        .progress-box {
+            background: rgba(15,23,42,0.8);
+            border: 1px solid #1e293b;
+            padding: 10px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+        .progress-bar-bg {
+            background: #0f172a;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 6px;
+            border: 1px solid #334155;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #0284c7, #38bdf8);
+            transition: width 0.3s;
+        }
+
+        /* Action Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(245,158,11,0.4);
+            margin-bottom: 8px;
+        }
+        .btn-blue {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            box-shadow: 0 4px 12px rgba(2,132,199,0.4);
+        }
+
+        /* Bottom Nav */
         .bottom-nav {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
             height: 65px;
-            background: #0f172a;
-            display: flex;
-            justify-content: space-around;
+            background: #090d16;
+            border-top: 1px solid #1e293b;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
             align-items: center;
-            border-top: 1px solid #334155;
-            z-index: 100;
         }
-        .nav-item {
+        .nav-btn {
             background: none;
             border: none;
-            color: #94a3b8;
+            color: #64748b;
             font-size: 11px;
-            cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
+            cursor: pointer;
         }
-        .nav-item.active {
+        .nav-btn.active {
             color: #38bdf8;
+            font-weight: bold;
         }
-        .nav-item span {
+        .nav-btn icon {
             font-size: 18px;
         }
 
-        /* পপআপ ম্যালফংশন/মডাল */
-        .modal {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 200;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: #1e293b;
-            width: 85%;
-            max-width: 350px;
-            padding: 20px;
-            border-radius: 16px;
-            text-align: center;
-            border: 2px solid #38bdf8;
-            box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);
-        }
-        .modal-btn {
-            background: #10b981;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 15px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 15px;
-            width: 100%;
-        }
-        .close-btn {
-            background: #ef4444;
-            margin-top: 8px;
+        /* Banner Box */
+        .info-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
         }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <!-- শীর্ষ ক্যাশ ও ব্যালেন্স বার -->
-        <div class="top-bar">
-            <div class="user-info">
-                <div class="user-avatar" id="avatar-text">R</div>
-                <div style="font-size: 13px; font-weight: bold;" id="username-display">RKR User</div>
+<div class="app-card">
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-box">RKR</div>
+        <div class="header-title">
+            <h2>RKR Airdrop Center</h2>
+            <p>Telegram Mini App</p>
+        </div>
+    </div>
+
+    <!-- Balance Bar -->
+    <div class="balance-grid">
+        <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-info">
+                <span>Skin Coin</span>
+                <strong id="skin-coin-val">1,250</strong>
             </div>
-            <div class="balances">
-                <div class="coin-box">
-                    <span>Balance</span>
-                    <strong id="header-balance">0 $RKR</strong>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon rkr">R</div>
+            <div class="stat-info">
+                <span>RKR Coin</span>
+                <strong id="rkr-coin-val">25</strong>
+                <small id="usd-val">≈ $2.50 USD</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen Content Area -->
+    <div class="content-area">
+        
+        <!-- Tab 1: Spin Screen -->
+        <div id="tab-spin" class="tab-content active">
+            <div class="wheel-wrap">
+                <div class="pointer"></div>
+                <div class="wheel" id="main-wheel">
+                    <div class="wheel-center">RKR</div>
                 </div>
-                <div class="coin-box">
-                    <span>USD Value</span>
-                    <strong id="header-usd" style="color: #10b981;">$0.00</strong>
+            </div>
+
+            <div class="progress-box">
+                <div style="display:flex; justify-content:space-between; font-size:12px;">
+                    <span>Spin Progress</span>
+                    <span id="progress-text">0/100</span>
                 </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="spinWheel()">⭐ SPIN (1 Spin = 1 Skin Coin)</button>
+        </div>
+
+        <!-- Tab 2: Home Screen -->
+        <div id="tab-home" class="tab-content">
+            <div class="info-card">
+                <h3>🎁 Daily Rewards</h3>
+                <p style="font-size: 12px; color: #94a3b8; margin: 5px 0 10px;">প্রতিদিন লগইন করুন এবং ফ্রি রিওয়ার্ড সংগ্রহ করুন!</p>
+                <button class="btn-primary btn-blue" onclick="alert('আজকের বোনাস ক্লেইম করা হয়েছে!')">Claim Daily Bonus</button>
+            </div>
+            <div class="info-card">
+                <h3>👛 TON Wallet Connection</h3>
+                <p style="font-size: 12px; color: #94a3b8; margin: 5px 0 10px;">আপনার ওয়ালেট সংযোগ করে রেডি থাকুন।</p>
+                <button class="btn-primary" onclick="alert('Tonkeeper ওয়ালেট কানেক্ট হচ্ছে...')">Connect Tonkeeper</button>
             </div>
         </div>
 
-        <!-- ফুটার মেনু ট্যাব -->
-        <div class="bottom-nav">
-            <button class="nav-item active" onclick="switchTab('wheel')"><span>🎡</span>Wheel</button>
-            <button class="nav-item" onclick="openModal('tasks-modal')"><span>🎯</span>Tasks</button>
-            <button class="nav-item" onclick="openModal('ref-modal')"><span>👥</span>Referral</button>
-            <button class="nav-item" onclick="openModal('premium-modal')"><span>⭐</span>Premium</button>
+        <!-- Tab 3: Tasks Screen -->
+        <div id="tab-tasks" class="tab-content">
+            <div class="info-card">
+                <h4>📢 Join Official Channel</h4>
+                <p style="font-size: 12px; color: #94a3b8;">+20 Skin Coin | +1 RKR Coin</p>
+                <button class="btn-primary btn-blue" style="margin-top:8px;" onclick="alert('চ্যানেলে নিয়ে যাওয়া হচ্ছে...')">Start Task</button>
+            </div>
+            <div class="info-card">
+                <h4>🎬 Watch Ads (+10 Skin Coin)</h4>
+                <p style="font-size: 12px; color: #94a3b8;">ভিডিও বিজ্ঞাপন দেখুন এবং ফ্রি স্কিন কয়েন পান।</p>
+                <button class="btn-primary" style="margin-top:8px;" onclick="watchAd()">Watch Video Ad</button>
+            </div>
         </div>
+
+        <!-- Tab 4: Referral Screen -->
+        <div id="tab-ref" class="tab-content">
+            <div class="info-card" style="text-align: center;">
+                <h3>👥 Invite Friends</h3>
+                <p style="font-size: 12px; color: #94a3b8; margin: 8px 0;">প্রতিটি সফল রেফারেলে পাবেন ১৫ Skin Coin + ২ RKR Coin!</p>
+                <input type="text" readonly value="https://t.me/your_bot?start=ref123" style="width:100%; padding:8px; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; text-align:center; margin-bottom:10px;">
+                <button class="btn-primary" onclick="alert('লিংক কপি করা হয়েছে!')">Copy Referral Link</button>
+            </div>
+        </div>
+
+        <!-- Tab 5: Premium Screen -->
+        <div id="tab-premium" class="tab-content">
+            <div class="info-card" style="border-color: #f59e0b;">
+                <h3 style="color:#f59e0b;">⭐ Premium Offers</h3>
+                <p style="font-size: 12px; color: #94a3b8; margin: 5px 0 10px;">এক্সক্লুসিভ ফিচার ও অতিরিক্ত স্পিন উপভোগ করুন।</p>
+                <button class="btn-primary" onclick="alert('Telegram Stars এর মাধ্যমে ক্রয়ের অপশন ওপেন হচ্ছে...')">Buy 200 Stars Pack ($16.00)</button>
+            </div>
+        </div>
+
     </div>
 
-    <!-- টাস্ক মডাল -->
-    <div id="tasks-modal" class="modal">
-        <div class="modal-content">
-            <h3 style="color: #f0a500; margin-top:0;">🎯 Daily & Social Tasks</h3>
-            <p style="font-size: 13px; color: #cbd5e1;">চ্যানেলে জয়েন করুন এবং টাস্ক সম্পন্ন করে ফ্রি স্পিন ও কয়েন নিন!</p>
-            <button class="modal-btn" onclick="alert('চ্যানেল জয়েন সফল!')">📢 Join Official Channel (+5 $RKR)</button>
-            <button class="modal-btn" onclick="alert('ডেইলি চেক-ইন সফল!')">🎁 Daily Check-in (+2 $RKR)</button>
-            <button class="modal-btn close-btn" onclick="closeModal('tasks-modal')">Close</button>
-        </div>
+    <!-- Navigation -->
+    <div class="bottom-nav">
+        <button class="nav-btn" onclick="switchTab('tab-home', this)">
+            <icon>🏠</icon> Home
+        </button>
+        <button class="nav-btn" onclick="switchTab('tab-ref', this)">
+            <icon>👥</icon> Referral
+        </button>
+        <button class="nav-btn" onclick="switchTab('tab-tasks', this)">
+            <icon>📋</icon> Tasks
+        </button>
+        <button class="nav-btn active" onclick="switchTab('tab-spin', this)">
+            <icon>🎡</icon> Spin
+        </button>
+        <button class="nav-btn" onclick="switchTab('tab-premium', this)">
+            <icon>👑</icon> Premium
+        </button>
     </div>
+</div>
 
-    <!-- রেফারেল মডাল -->
-    <div id="ref-modal" class="modal">
-        <div class="modal-content">
-            <h3 style="color: #38bdf8; margin-top:0;">👥 Referral System</h3>
-            <p style="font-size: 13px; color: #cbd5e1;">প্রতি রেফারে পাবেন ৩ $RKR + ১০ স্পিন এবং ৫% লাইফটাইম কমিশন!</p>
-            <button class="modal-btn" onclick="alert('রেফারেল লিংক কপি হয়েছে!')">🔗 Copy Referral Link</button>
-            <button class="modal-btn close-btn" onclick="closeModal('ref-modal')">Close</button>
-        </div>
-    </div>
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-    <!-- প্রিমিয়াম স্টোর মডাল -->
-    <div id="premium-modal" class="modal">
-        <div class="modal-content">
-            <h3 style="color: #f0a500; margin-top:0;">⭐ Premium Store</h3>
-            <p style="font-size: 13px; color: #cbd5e1;">প্যাকেজ ১: ৫০ Telegram Stars = ১,০০০ স্পিন + ৫০ $RKR</p>
-            <button class="modal-btn" onclick="alert('Telegram Stars পেমেন্ট গেটওয়ে ওপেন হচ্ছে...')">⭐ Buy with Stars</button>
-            <button class="modal-btn close-btn" onclick="closeModal('premium-modal')">Close</button>
-        </div>
-    </div>
+    let skinCoins = 1250;
+    let rkrCoins = 25;
+    let progress = 0;
+    let currentRotation = 0;
+    const rateUSD = 0.10;
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+    function updateUI() {
+        document.getElementById('skin-coin-val').innerText = skinCoins.toLocaleString();
+        document.getElementById('rkr-coin-val').innerText = rkrCoins;
+        document.getElementById('usd-val').innerText = `≈ $${(rkrCoins * rateUSD).toFixed(2)} USD`;
+        
+        document.getElementById('progress-text').innerText = `${progress}/100`;
+        document.getElementById('progress-fill').style.width = `${progress}%`;
+    }
 
-        // ইউজারের নাম সেট করা
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            let uName = tg.initDataUnsafe.user.first_name || "User";
-            document.getElementById("username-display").innerText = uName;
-            document.getElementById("avatar-text").innerText = uName.charAt(0).toUpperCase();
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function spinWheel() {
+        if (skinCoins <= 0) {
+            alert("❌ আপনার কাছে পর্যাপ্ত Skin Coin নেই! বিজ্ঞাপণ দেখে কয়েন নিন।");
+            return;
         }
 
-        let userBalance = 0;
-        let skinCounter = 0;
-        let currentLevel = 1;
-        let spinBalance = 15;
-        const coinRateUSD = 0.10; // ১ $RKR = $0.10 USD
+        skinCoins -= 1;
+        currentRotation += 1080 + Math.floor(Math.random() * 360);
+        document.getElementById('main-wheel').style.transform = `rotate(${currentRotation}deg)`;
 
-        function updateTopBar() {
-            document.getElementById("header-balance").innerText = userBalance + " $RKR";
-            let usd = (userBalance * coinRateUSD).toFixed(2);
-            document.getElementById("header-usd").innerText = "$" + usd;
-        }
-
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function switchTab(tab) { alert("Switched to " + tab); }
-
-        // PhaserJS গেম ইঞ্জিন দিয়ে প্রফেশনাল স্পিন হুইল ও ইন্টারফেস তৈরি
-        class MainScene extends Phaser.Scene {
-            constructor() {
-                super('MainScene');
+        setTimeout(() => {
+            progress += 10;
+            if (progress >= 100) {
+                progress = 0;
+                rkrCoins += 1;
+                alert("🎉 অভিনন্দন! ১০০ পয়েন্ট পূর্ণ হওয়ায় আপনি ১টি RKR Coin পেয়েছেন!");
             }
+            updateUI();
+        }, 3000);
+    }
 
-            preload() {
-                // দরকারি গ্রাফিক্স বা অ্যাসেট লোড
-            }
+    function watchAd() {
+        alert("▶️ অ্যাড দেখা হচ্ছে...");
+        skinCoins += 10;
+        updateUI();
+        alert("🎉 আপনি ১০টি Skin Coin পেয়েছেন!");
+    }
 
-            create() {
-                let width = this.scale.width;
-                let height = this.scale.height;
-
-                // ব্যাকগ্রাউন্ড গ্লো ইফেক্ট
-                this.add.circle(width / 2, height / 2 - 50, 140, 0x1e293b, 0.8).setStrokeStyle(3, 0xf0a500);
-
-                // স্পিন হুইল (চাকা) আঁকা
-                this.wheel = this.add.container(width / 2, height / 2 - 50);
-                
-                let colors = [0x38bdf8, 0x10b981, 0xf59e0b, 0xef4444, 0x8b5cf6, 0xec4899];
-                for (let i = 0; i < 6; i++) {
-                    let graphics = this.add.graphics();
-                    graphics.fillStyle(colors[i], 1);
-                    graphics.slice(0, 0, 120, Phaser.Math.DegToRad(i * 60), Phaser.Math.DegToRad((i + 1) * 60), true);
-                    graphics.fillPath();
-                    this.wheel.add(graphics);
-                }
-
-                // চাকার ওপর সেন্ট্রাল লোগো বক্স
-                let centerBox = this.add.circle(0, 0, 35, 0x0f172a);
-                centerBox.setStrokeStyle(3, 0xf0a500);
-                let centerText = this.add.text(0, 0, "RKR", { fontSize: '16px', fill: '#f0a500', fontStyle: 'bold' }).setOrigin(0.5);
-                this.wheel.add([centerBox, centerText]);
-
-                // পয়েন্টার বা সূচিপত্র
-                let pointer = this.add.triangle(width / 2, height / 2 - 180, 0, 0, 20, 0, 10, 20, 0xffffff);
-                pointer.setDepth(10);
-
-                // লেভেল ও কাউন্টার টেক্সট
-                this.levelText = this.add.text(width / 2, height / 2 + 105, `Level: ${currentLevel} (Skin: ${skinCounter}/100)`, {
-                    fontSize: '15px', fill: '#f0a500', fontStyle: 'bold'
-                }).setOrigin(0.5);
-
-                this.spinInfoText = this.add.text(width / 2, height / 2 + 130, `অবশিষ্ট স্পিন: ${spinBalance} টি`, {
-                    fontSize: '14px', fill: '#38bdf8'
-                }).setOrigin(0.5);
-
-                // স্পিন বাটন (Spin Button)
-                let spinBtnBg = this.add.rectangle(width / 2, height / 2 + 190, 240, 50, 0x0ea5e9).setInteractive();
-                spinBtnBg.setStrokeStyle(2, 0xffffff);
-                let spinBtnText = this.add.text(width / 2, height / 2 + 190, "SPIN NOW", {
-                    fontSize: '18px', fill: '#ffffff', fontStyle: 'bold'
-                }).setOrigin(0.5);
-
-                spinBtnBg.on('pointerdown', () => {
-                    this.triggerSpin();
-                });
-
-                // অ্যাড দেখে স্পিন নেওয়ার বাটন
-                let adBtnBg = this.add.rectangle(width / 2, height / 2 + 250, 240, 45, 0xf59e0b).setInteractive();
-                let adBtnText = this.add.text(width / 2, height / 2 + 250, "🎬 Watch Ad (+5 Spins)", {
-                    fontSize: '15px', fill: '#ffffff', fontStyle: 'bold'
-                }).setOrigin(0.5);
-
-                adBtnBg.on('pointerdown', () => {
-                    spinBalance += 5;
-                    this.spinInfoText.setText(`অবশিষ্ট স্পিন: ${spinBalance} টি`);
-                    alert("🎉 সফলভাবে ৫টি ফ্রি স্পিন যোগ হয়েছে!");
-                });
-            }
-
-            triggerSpin() {
-                if (spinBalance <= 0) {
-                    alert("❌ আপনার স্পিন শেষ! 'Watch Ad' বাটনে ক্লিক করে স্পিন নিন।");
-                    return;
-                }
-
-                spinBalance--;
-                this.spinInfoText.setText(`অবশিষ্ট স্পিন: ${spinBalance} টি`);
-
-                // চাকা ঘোরার অ্যানিমেশন
-                let randomAngle = 1440 + Phaser.Math.Between(0, 360);
-                this.tweens.add({
-                    targets: this.wheel,
-                    angle: this.wheel.angle + randomAngle,
-                    duration: 2000,
-                    ease: 'Cubic.easeOut',
-                    onComplete: () => {
-                        // স্কিন সাইকেল লজিক হিসাব
-                        let isGoingUp = (currentLevel % 2 !== 0);
-                        if (isGoingUp) {
-                            skinCounter += 20;
-                            if (skinCounter >= 100) {
-                                skinCounter = 100;
-                                userBalance += 1; // ১ $RKR কয়েন যোগ
-                                currentLevel++;
-                                skinCounter = 0;
-                            }
-                        } else {
-                            skinCounter -= 20;
-                            if (skinCounter <= 0) {
-                                skinCounter = 0;
-                                userBalance += 1; // ১ $RKR কয়েন যোগ
-                                currentLevel++;
-                                skinCounter = 100;
-                            }
-                        }
-
-                        this.levelText.setText(`Level: ${currentLevel} (Skin: ${skinCounter}/100)`);
-                        updateTopBar();
-                    }
-                });
-            }
-        }
-
-        // Phaser গেম কনফিগারেশন
-        const config = {
-            type: Phaser.AUTO,
-            width: window.innerWidth > 450 ? 450 : window.innerWidth,
-            height: window.innerHeight,
-            parent: 'game-container',
-            scene: [MainScene]
-        };
-
-        const game = new Phaser.Game(config);
-    </script>
+    updateUI();
+</script>
 </body>
 </html>
