@@ -1,43 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RKR Airdrop Center</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background-color: #1a1a2e; color: #ffffff; font-family: Arial, sans-serif; text-align: center; padding: 20px; margin: 0; }
-        .card { background: #16213e; padding: 20px; border-radius: 15px; margin-bottom: 15px; }
-        .btn { background: #0088cc; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; }
+        body {
+            background-color: #1a1a2e;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        .btn {
+            background: #0088cc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .btn-green {
+            background: #10b981;
+        }
         h2 { color: #f0a500; }
     </style>
 </head>
 <body>
+
     <h2>🚀 RKR Airdrop Center</h2>
+
+    <!-- ব্যালেন্স দেখার কার্ড -->
     <div class="card">
         <h3>💰 Your Balance</h3>
-        <h1 id="balance">0 $RKR</h1>
+        <h1 id="user-balance">0 $RKR</h1>
     </div>
+
+    <!-- লেভেল এবং স্কিন কাউন্টার -->
     <div class="card">
-        <h3>🌀 Daily Spins</h3>
-        <p>Spins: <b id="spins">10</b></p>
-        <button class="btn" onclick="spinWheel()">Spin & Win</button>
+        <h3>🎯 Level & Skin Counter</h3>
+        <h2>Level: <span id="user-level" style="color: #f0a500;">1</span></h2>
+        <p style="font-size: 18px;">Skin Counter: <b id="skin-counter">0</b>/100</p>
     </div>
+
+    <!-- স্পিন অপশন -->
+    <div class="card">
+        <h3>🌀 Spins Option</h3>
+        <button class="btn" onclick="makeSpin(1)">Spin 1x</button>
+        <button class="btn btn-green" onclick="makeSpin(10)">Batch Spin 10x</button>
+    </div>
+
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        let balance = 0, spins = 10;
-        function spinWheel() {
-            if (spins > 0) {
-                spins--;
-                balance += 2;
-                document.getElementById('balance').innerText = balance + " $RKR";
-                document.getElementById('spins').innerText = spins;
-                alert("🎉 You won 2 $RKR!");
-            } else {
-                alert("❌ No spins left!");
-            }
-        }
-    </script>
-</body>
-</html>
+
+        let currentLevel = 1;
+        let skinCounter = 0;
+        let userBalance = 0;
+
+        function makeSpin(spinAmount) {
+            let remainingSpins = spinAmount;
+
+            while (remainingSpins > 0) {
+                // বিজোড় লেভেলে কাউন্টার ০ থেকে ১০০ তে যাবে, আর জোড় লেভেলে ১০০ থেকে ০ তে নামবে
+                let isGoingUp = (currentLevel % 2 !== 0);
+
+                if (isGoingUp) {
+                    let neededTo100 = 100 - skinCounter;
+                    
+                    if (remainingSpins >= neededTo100) {
+                        remainingSpins -= neededTo1
+                        
