@@ -6,12 +6,94 @@
     <title>RKR Airdrop Center</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background-color: #0f172a; color: #ffffff; font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 15px; }
-        .container { max-width: 420px; margin: auto; }
-        .card { background: #1e293b; padding: 15px; border-radius: 15px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .menu-btn { background-color: #334155; color: white; border: none; padding: 12px; font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; }
-        .action-btn { background-color: #0ea5e9; color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 8px; }
+        body {
+            background-color: #0f172a;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 15px;
+        }
+        .container {
+            max-width: 420px;
+            margin: auto;
+        }
+        .card {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        /* স্পিন চাকা (Wheel) ডিজাইন */
+        .wheel-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 15px auto;
+        }
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 5px solid #f0a500;
+            background: conic-gradient(
+                #38bdf8 0deg 72deg, 
+                #10b981 72deg 144deg, 
+                #f59e0b 144deg 216deg, 
+                #ef4444 216deg 288deg, 
+                #8b5cf6 288deg 360deg
+            );
+            transition: transform 3s cubic-bezier(0.15, 0.99, 0.33, 1);
+            box-shadow: 0 0 15px rgba(240, 165, 0, 0.5);
+        }
+        .wheel-pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 20px solid #ffffff;
+            z-index: 10;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .menu-btn {
+            background-color: #334155;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .action-btn {
+            background-color: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 8px;
+        }
         .action-btn-green { background-color: #10b981; }
         .action-btn-orange { background-color: #f59e0b; }
         h2 { color: #f0a500; margin: 10px 0; }
@@ -22,38 +104,47 @@
     <div class="container">
         <h2>🚀 RKR Airdrop Center</h2>
 
-        <!-- ব্যালেন্স এবং কয়েন রেট -->
-        <div class="card">
-            <p style="margin: 0; font-size: 13px; color: #94a3b8;">Your Balance</p>
-            <h1 id="user-balance" style="margin: 5px 0; color: #38bdf8;">0 $RKR</h1>
-            <p style="margin: 0; font-size: 14px; color: #10b981;">≈ $<span id="usd-value">0.00</span> USD (1 $RKR = $0.10)</p>
+        <!-- ব্যালেন্স এবং আজকের আয়ের গ্রিড -->
+        <div class="stats-grid">
+            <div class="card">
+                <p style="margin: 0; font-size: 12px; color: #94a3b8;">Total Balance</p>
+                <h2 id="user-balance" style="margin: 5px 0; color: #38bdf8;">0 $RKR</h2>
+                <p style="margin: 0; font-size: 12px; color: #10b981;">≈ $<span id="usd-value">0.00</span></p>
+            </div>
+            <div class="card">
+                <p style="margin: 0; font-size: 12px; color: #94a3b8;">RKR Coin Today</p>
+                <h2 id="today-coin" style="margin: 5px 0; color: #f0a500;">0 $RKR</h2>
+                <p style="margin: 0; font-size: 12px; color: #cbd5e1;">Rate: $0.10</p>
+            </div>
         </div>
 
-        <!-- লেভেল, স্কিন কাউন্টার ও স্পিন -->
+        <!-- চাকা এবং স্পিন সেকশন -->
         <div class="card">
+            <!-- ঘূড়নশীল স্পিন চাকা -->
+            <div class="wheel-container">
+                <div class="wheel-pointer"></div>
+                <div class="wheel" id="spin-wheel"></div>
+            </div>
+
             <h3 style="margin: 5px 0;">Level: <span id="user-level" style="color: #f0a500;">1</span></h3>
-            <p style="margin: 5px 0; font-size: 16px;">Skin Counter: <b id="skin-counter">0</b>/100</p>
-            <p style="margin: 5px 0; font-size: 15px; color: #cbd5e1;">অবশিষ্ট স্পিন: <b id="spin-balance" style="color: #38bdf8;">10</b> টি</p>
-        </div>
+            <p style="margin: 5px 0; font-size: 15px;">Skin Counter: <b id="skin-counter">0</b>/100</p>
+            <p style="margin: 5px 0; font-size: 14px; color: #cbd5e1;">অবশিষ্ট স্পিন: <b id="spin-balance" style="color: #38bdf8;">10</b> টি</p>
 
-        <!-- স্পিন ও অ্যাড রিফিল -->
-        <div class="card">
-            <h4 style="margin: 5px 0 10px 0;">🌀 Spin System</h4>
             <button class="action-btn" onclick="makeSpin(1)">Spin 1x</button>
             <button class="action-btn action-btn-green" onclick="makeSpin(10)">Batch Spin 10x</button>
             <button class="action-btn action-btn-orange" onclick="watchAdForSpins()">🎬 Watch Ad (+5 Spins)</button>
         </div>
 
-        <!-- মেনু বাটন -->
+        <!-- মেনু বাটনসমূহ -->
         <div class="btn-grid">
-            <button class="menu-btn" onclick="alert('Spin Game')">🎡 Spin Game</button>
-            <button class="menu-btn" onclick="alert('Tasks')">🎯 Tasks</button>
-            <button class="menu-btn" onclick="openReferral()">👥 Referral</button>
-            <button class="menu-btn" onclick="openPremium()">⭐ Premium</button>
-            <button class="menu-btn" onclick="alert('Leaderboard')">🏆 Leaderboard</button>
-            <button class="menu-btn" onclick="alert('TON Wallet')">👛 Wallet</button>
-            <button class="menu-btn" onclick="alert('Roadmap')">🗺️ Roadmap</button>
-            <button class="menu-btn" onclick="alert('Support')">🎧 Support</button>
+            <button class="menu-btn" onclick="alert('Spin Game Running')">🎡 Spin Game</button>
+            <button class="menu-btn" onclick="alert('Daily Tasks & Rewards')">🎯 Tasks</button>
+            <button class="menu-btn" onclick="alert('Referral Link: https://t.me/your_bot?start=ref123')">👥 Referral</button>
+            <button class="menu-btn" onclick="alert('Premium Store: 50 Stars = 1000 Spins')">⭐ Premium</button>
+            <button class="menu-btn" onclick="alert('Leaderboard Coming Soon')">🏆 Leaderboard</button>
+            <button class="menu-btn" onclick="alert('TON Wallet Connect')">👛 Wallet</button>
+            <button class="menu-btn" onclick="alert('Roadmap 2026')">🗺️ Roadmap</button>
+            <button class="menu-btn" onclick="alert('Official Support')">🎧 Support</button>
         </div>
     </div>
 
@@ -64,74 +155,77 @@
         let currentLevel = 1;
         let skinCounter = 0;
         let userBalance = 0;
+        let todayCoin = 0;
         let spinBalance = 10; 
+        let currentRotation = 0;
         const coinRateUSD = 0.10;
-        
-        // আপনার চ্যাট/চ্যানেল লিঙ্ক
-        const officialChannelUrl = "https://t.me/YOUR_CHANNEL_USERNAME"; 
 
         function updateUI() {
             document.getElementById("user-level").innerText = currentLevel;
             document.getElementById("skin-counter").innerText = skinCounter;
             document.getElementById("user-balance").innerText = userBalance + " $RKR";
+            document.getElementById("today-coin").innerText = todayCoin + " $RKR";
             document.getElementById("spin-balance").innerText = spinBalance;
+            
             let totalUSD = (userBalance * coinRateUSD).toFixed(2);
             document.getElementById("usd-value").innerText = totalUSD;
         }
 
         function makeSpin(spinAmount) {
             if (spinBalance < spinAmount) {
-                alert("❌ আপনার স্পিন শেষ! অ্যাড দেখে ৫টি স্পিন নিন।");
+                alert("❌ আপনার স্পিন শেষ! 'Watch Ad' বাটনে চাপ দিয়ে অ্যাড দেখে স্পিন নিন।");
                 return;
             }
-            spinBalance -= spinAmount;
-            let remainingSpins = spinAmount;
 
-            while (remainingSpins > 0) {
-                let isGoingUp = (currentLevel % 2 !== 0);
-                if (isGoingUp) {
-                    let neededTo100 = 100 - skinCounter;
-                    if (remainingSpins >= neededTo100) {
-                        remainingSpins -= neededTo100;
-                        skinCounter = 100;
-                        userBalance += 1;
-                        currentLevel++;
-                        skinCounter = 100;
+            spinBalance -= spinAmount;
+
+            // চাকা ঘোরানোর অ্যানিমেশন (Wheel Spin Animation)
+            currentRotation += 1440 + Math.floor(Math.random() * 360);
+            document.getElementById("spin-wheel").style.transform = `rotate(${currentRotation}deg)`;
+
+            setTimeout(() => {
+                let remainingSpins = spinAmount;
+
+                while (remainingSpins > 0) {
+                    let isGoingUp = (currentLevel % 2 !== 0);
+
+                    if (isGoingUp) {
+                        let neededTo100 = 100 - skinCounter;
+                        if (remainingSpins >= neededTo100) {
+                            remainingSpins -= neededTo100;
+                            skinCounter = 100;
+                            userBalance += 1;
+                            todayCoin += 1; // আজকের কয়েনে যোগ
+                            currentLevel++;
+                            skinCounter = 100;
+                        } else {
+                            skinCounter += remainingSpins;
+                            remainingSpins = 0;
+                        }
                     } else {
-                        skinCounter += remainingSpins;
-                        remainingSpins = 0;
-                    }
-                } else {
-                    let neededTo0 = skinCounter;
-                    if (remainingSpins >= neededTo0) {
-                        remainingSpins -= neededTo0;
-                        skinCounter = 0;
-                        userBalance += 1;
-                        currentLevel++;
-                        skinCounter = 0;
-                    } else {
-                        skinCounter -= remainingSpins;
-                        remainingSpins = 0;
+                        let neededTo0 = skinCounter;
+                        if (remainingSpins >= neededTo0) {
+                            remainingSpins -= neededTo0;
+                            skinCounter = 0;
+                            userBalance += 1;
+                            todayCoin += 1; // আজকের কয়েনে যোগ
+                            currentLevel++;
+                            skinCounter = 0;
+                        } else {
+                            skinCounter -= remainingSpins;
+                            remainingSpins = 0;
+                        }
                     }
                 }
-            }
-            updateUI();
+                updateUI();
+            }, 800);
         }
 
         function watchAdForSpins() {
-            alert("▶️ অ্যাড দেখা হচ্ছে...");
+            alert("▶️ বিজ্ঞাপন দেখা হচ্ছে... (অ্যাড শেষে ৫টি স্পিন পাবেন)");
             spinBalance += 5;
             updateUI();
-            alert("🎉 ৫টি ফ্রি স্পিন যোগ হয়েছে!");
-        }
-
-        function openReferral() {
-            window.open(officialChannelUrl, '_blank');
-            alert("⚠️ অফিশিয়াল চ্যানেলে জয়েন চেক করা হচ্ছে। জয়েন শেষ হলে বট ব্যাকএন্ড আপনার ৩ $RKR + ১০ স্পিন যোগ করবে!");
-        }
-
-        function openPremium() {
-            alert("⭐ Premium Store Offer:\n১. ৫০ Stars = ১,০০০ স্পিন + ৫০ $RKR\n২. ১০০ Stars = ২,৫০০ স্পিন + ১২০ $RKR");
+            alert("🎉 আপনি ১টি ভিডিও অ্যাড দেখে ৫টি ফ্রি স্পিন পেয়েছেন!");
         }
 
         updateUI();
