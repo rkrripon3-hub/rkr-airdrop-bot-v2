@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RKR Airdrop Center</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { background-color: #1a1a2e; color: #ffffff; font-family: Arial, sans-serif; text-align: center; padding: 20px; margin: 0; }
+        .card { background: #16213e; padding: 20px; border-radius: 15px; margin-bottom: 15px; }
+        .btn { background: #0088cc; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; }
+        h2 { color: #f0a500; }
+    </style>
+</head>
+<body>
+    <h2>🚀 RKR Airdrop Center</h2>
+    <div class="card">
+        <h3>💰 Your Balance</h3>
+        <h1 id="balance">0 $RKR</h1>
+    </div>
+    <div class="card">
+        <h3>🌀 Daily Spins</h3>
+        <p>Spins: <b id="spins">10</b></p>
+        <button class="btn" onclick="spinWheel()">Spin & Win</button>
+    </div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        let balance = 0, spins = 10;
+        function spinWheel() {
+            if (spins > 0) {
+                spins--;
+                balance += 2;
+                document.getElementById('balance').innerText = balance + " $RKR";
+                document.getElementById('spins').innerText = spins;
+                alert("🎉 You won 2 $RKR!");
+            } else {
+                alert("❌ No spins left!");
+            }
+        }
+    </script>
+</body>
+</html>
