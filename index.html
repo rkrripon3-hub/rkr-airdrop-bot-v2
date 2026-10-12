@@ -7,59 +7,100 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            background-color: #1a1a2e;
+            background-color: #0f172a;
             color: #ffffff;
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
+        }
+        .container {
+            max-width: 420px;
+            margin: auto;
         }
         .card {
-            background: #16213e;
-            padding: 20px;
+            background: #1e293b;
+            padding: 15px;
             border-radius: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
-        .btn {
-            background: #0088cc;
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .menu-btn {
+            background-color: #334155;
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .action-btn {
+            background-color: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 12px 20px;
             font-size: 16px;
+            font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
             width: 100%;
-            margin-top: 10px;
-            font-weight: bold;
+            margin-top: 8px;
         }
-        .btn-green {
-            background: #10b981;
+        .action-btn-green {
+            background-color: #10b981;
         }
-        h2 { color: #f0a500; }
+        .action-btn-orange {
+            background-color: #f59e0b;
+        }
+        h2 { color: #f0a500; margin: 10px 0; }
     </style>
 </head>
 <body>
 
-    <h2>🚀 RKR Airdrop Center</h2>
+    <div class="container">
+        <h2>🚀 RKR Airdrop Center</h2>
 
-    <!-- ব্যালেন্স দেখার কার্ড -->
-    <div class="card">
-        <h3>💰 Your Balance</h3>
-        <h1 id="user-balance">0 $RKR</h1>
-    </div>
+        <!-- ১. ব্যালেন্স এবং কয়েন রেট ($0.10) -->
+        <div class="card">
+            <p style="margin: 0; font-size: 13px; color: #94a3b8;">Your Balance</p>
+            <h1 id="user-balance" style="margin: 5px 0; color: #38bdf8;">0 $RKR</h1>
+            <p style="margin: 0; font-size: 14px; color: #10b981;">≈ $<span id="usd-value">0.00</span> USD (1 $RKR = $0.10)</p>
+        </div>
 
-    <!-- লেভেল এবং স্কিন কাউন্টার -->
-    <div class="card">
-        <h3>🎯 Level & Skin Counter</h3>
-        <h2>Level: <span id="user-level" style="color: #f0a500;">1</span></h2>
-        <p style="font-size: 18px;">Skin Counter: <b id="skin-counter">0</b>/100</p>
-    </div>
+        <!-- ২. লেভেল, স্কিন কাউন্টার এবং স্পিন ব্যালেন্স -->
+        <div class="card">
+            <h3 style="margin: 5px 0;">Level: <span id="user-level" style="color: #f0a500;">1</span></h3>
+            <p style="margin: 5px 0; font-size: 16px;">Skin Counter: <b id="skin-counter">0</b>/100</p>
+            <p style="margin: 5px 0; font-size: 15px; color: #cbd5e1;">অবশিষ্ট স্পিন: <b id="spin-balance" style="color: #38bdf8;">10</b> টি</p>
+        </div>
 
-    <!-- স্পিন অপশন -->
-    <div class="card">
-        <h3>🌀 Spins Option</h3>
-        <button class="btn" onclick="makeSpin(1)">Spin 1x</button>
-        <button class="btn btn-green" onclick="makeSpin(10)">Batch Spin 10x</button>
+        <!-- ৩. স্পিন ও অ্যাড দিয়ে স্পিন বাড়ানোর সিস্টেম -->
+        <div class="card">
+            <h4 style="margin: 5px 0 10px 0;">🌀 Spin System</h4>
+            <button class="action-btn" onclick="makeSpin(1)">Spin 1x</button>
+            <button class="action-btn action-btn-green" onclick="makeSpin(10)">Batch Spin 10x</button>
+            <!-- স্পিন শেষ হলে যতবার ইচ্ছা অ্যাড দেখে ৫টি করে স্পিন নেওয়ার বাটন -->
+            <button class="action-btn action-btn-orange" onclick="watchAdForSpins()">🎬 Watch Ad (+5 Spins)</button>
+        </div>
+
+        <!-- ৪. মেনু বাটনসমূহ -->
+        <div class="btn-grid">
+            <button class="menu-btn" onclick="alert('Spin Game Running')">🎡 Spin Game</button>
+            <button class="menu-btn" onclick="alert('Daily Tasks & Rewards')">🎯 Tasks</button>
+            <button class="menu-btn" onclick="openReferral()">👥 Referral</button>
+            <button class="menu-btn" onclick="openPremium()">⭐ Premium</button>
+            <button class="menu-btn" onclick="alert('Leaderboard Coming Soon')">🏆 Leaderboard</button>
+            <button class="menu-btn" onclick="alert('TON Wallet Connect')">👛 Wallet</button>
+            <button class="menu-btn" onclick="alert('Roadmap 2026')">🗺️ Roadmap</button>
+            <button class="menu-btn" onclick="alert('Official Support')">🎧 Support</button>
+        </div>
     </div>
 
     <script>
@@ -69,17 +110,12 @@
         let currentLevel = 1;
         let skinCounter = 0;
         let userBalance = 0;
+        let spinBalance = 10; 
+        const coinRateUSD = 0.10; // কয়েন রেট ০.১০ ডলার
+        let isJoinedChannel = false; // চ্যানলে জয়েন স্ট্যাটাস
 
-        function makeSpin(spinAmount) {
-            let remainingSpins = spinAmount;
-
-            while (remainingSpins > 0) {
-                // বিজোড় লেভেলে কাউন্টার ০ থেকে ১০০ তে যাবে, আর জোড় লেভেলে ১০০ থেকে ০ তে নামবে
-                let isGoingUp = (currentLevel % 2 !== 0);
-
-                if (isGoingUp) {
-                    let neededTo100 = 100 - skinCounter;
-                    
-                    if (remainingSpins >= neededTo100) {
-                        remainingSpins -= neededTo1
-                        
+        function updateUI() {
+            document.getElementById("user-level").innerText = currentLevel;
+            document.getElementById("skin-counter").innerText = skinCounter;
+            document.getElementById("user-balance").innerText = userBalance +
+                
