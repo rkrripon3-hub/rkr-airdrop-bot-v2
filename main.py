@@ -1,11 +1,25 @@
 import logging
+import os
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from flask import Flask
+import threading
 import config
 
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=config.BOT_TOKEN)
 dp = Dispatcher(bot)
+
+# Render-এর স্লিপ প্রবলেম সমাধানের জন্য ফ্লাস্ক সার্ভার
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "RKR Airdrop Bot is running 24/7!"
+
+def run_web():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
 
 # চ্যানেল সাবস্ক্রিপশন চেক ফাংশন
 async def is_user_subscribed(user_id: int) -> bool:
@@ -20,7 +34,6 @@ async def is_user_subscribed(user_id: int) -> bool:
 async def start_handler(message: types.Message):
     user_id = message.from_user.id
     
-    # F-Sub Check
     subscribed = await is_user_subscribed(user_id)
     if not subscribed:
         keyboard = InlineKeyboardMarkup(row_width=1)
@@ -66,5 +79,6 @@ async def process_callback_check_sub(callback_query: types.CallbackQuery):
         await bot.answer_callback_query(callback_query.id, "❌ আপনি এখনো চ্যানেলে জয়েন করেননি!", show_alert=True)
 
 if __name__ == '__main__':
+    threading.Thread(target=run_web).start()
     executor.start_polling(dp, skip_updates=True)
     
